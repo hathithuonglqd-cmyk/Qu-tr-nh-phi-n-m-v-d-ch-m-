@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA & RNA World Cute 3D 🧬✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f1123;
+            --panel-bg: rgba(26, 29, 58, 0.88);
+            --border-cute: rgba(255, 182, 193, 0.5);
+            
+            /* Bảng màu Kawaii Pastel */
+            --color-a: #ff7675; /* Đỏ hồng pastel */
+            --color-t: #55efc4; /* Xanh lá mint */
+            --color-g: #74b9ff; /* Xanh dương mềm */
+            --color-c: #ffeaa7; /* Vàng kem */
+            --color-u: #a29bfe; /* Tím lavender */
+            --color-backbone: #fd79a8; /* Hồng ngọt */
+            --color-hbond: #ffffff;
+            --accent-pink: #ff85a2;
+            --accent-yellow: #ffeaa7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #ffffff;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #webgl-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 18px;
+        }
+
+        .ui-card {
+            pointer-events: auto;
+            background: var(--panel-bg);
+            border: 2px solid var(--border-cute);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        header {
+            padding: 12px 20px;
+            max-width: 380px;
+        }
+        header h1 {
+            font-size: 20px;
+            color: var(--accent-pink);
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        header p {
+            font-size: 12px;
+            color: #a6b0cf;
+            margin-top: 2px;
+        }
+
+        #info-panel {
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            width: 360px;
+            max-height: calc(100% - 130px);
+            padding: 18px;
+            overflow-y: auto;
+        }
+        .panel-section { display: none; }
+        .panel-section.active { display: block; }
+        .panel-section h2 {
+            font-size: 16px;
+            color: #ff9ff3;
+            margin-bottom: 8px;
+            border-bottom: 2px dashed rgba(255, 255, 255, 0.15);
+            padding-bottom: 6px;
+        }
+        .panel-section p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #dcdde1;
+            margin-bottom: 10px;
+        }
+
+        .cute-box {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-left: 4px solid var(--accent-pink);
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+        #interactive-popup {
+            position: absolute;
+            bottom: 110px;
+            right: 18px;
+            width: 300px;
+            padding: 14px;
+            background: rgba(20, 22, 45, 0.95);
+            border: 2px solid #55efc4;
+            border-radius: 16px;
+            display: none;
+            z-index: 20;
+            pointer-events: auto;
+            box-shadow: 0 0 20px rgba(85, 239, 196, 0.3);
+        }
+        #interactive-popup h3 { color: #55efc4; font-size: 14px; margin-bottom: 4px; }
+        #interactive-popup p { font-size: 12px; color: #f5f6fa; line-height: 1.4; }
+
+        nav#main-menu {
+            align-self: center;
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            border-radius: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #a6b0cf;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .nav-btn:hover { color: #fff; transform: translateY(-2px); }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #ff85a2, #a29bfe);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(255, 133, 162, 0.4);
+        }
+
+        #action-controls {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+        .step-btn {
+            background: #2d3436;
+            border: 2px solid var(--accent-pink);
+            color: #fff;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        .step-btn.active { background: var(--accent-pink); color: #fff; }
+
+        /* Khung Bài Tập Tương Tác */
+        #quiz-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-yellow);
+            padding: 16px 24px;
+            border-radius: 20px;
+            display: none;
+            pointer-events: auto;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            max-width: 450px;
+        }
+        #quiz-container h3 { color: var(--accent-yellow); font-size: 14px; margin-bottom: 6px; }
+        .quiz-options { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+        .quiz-opt-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            font-weight: 900;
+            font-size: 15px;
+            cursor: pointer;
+            color: #2d3436;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .quiz-opt-btn:hover { transform: scale(1.15); }
+
+        #loader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid rgba(255, 133, 162, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent-pink);
+            animation: spin 1s infinite linear;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            #info-panel { width: calc(100% - 36px); bottom: 85px; top: auto; max-height: 160px; }
+            #interactive-popup { width: calc(100% - 36px); bottom: 175px; right: 18px; }
+            nav#main-menu { flex-wrap: wrap; justify-content: center; }
+            .nav-btn { font-size: 10px; padding: 6px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top:14px; color:var(--accent-pink); font-size:14px; font-weight:700;">Đang nạp mô hình 3D sinh học dễ thương... ✨🧬</p>
+    </div>
+
+    <div id="webgl-container"></div>
+
+    <div class="ui-overlay">
+        <header class="ui-card">
+            <h1>DNA & RNA Cute World 🍓</h1>
+            <p>Mô Phỏng 3D Quá Trình Tái Bản & Phiên Mã</p>
+        </header>
+
+        <div id="info-panel" class="ui-card">
+            <!-- Module 1 -->
+            <div id="sect-mod1" class="panel-section active">
+                <h2>1. Cấu Trúc Hóa Học DNA 🧪</h2>
+                <p>DNA là đại phân tử cấu tạo theo nguyên tắc đa phân. Các đơn phân là 4 loại Nucleotide liên kết tạo nên chuỗi xoắn.</p>
+                <div class="legend-grid">
+                    <div class="legend-item"><span class="color-dot" style="background:var(--color-a);"></span> Adenine (A)</div>
+                    <div class="legend-item"><span class="color-dot" style="background:var(--color-t);"></span> Thymine (T)</div>
+                    <div class="legend-item"><span class="color-dot" style="background:var(--color-g);"></span> Guanine (G)</div>
+                    <div class="legend-item"><span class="color-dot" style="background:var(--color-c);"></span> Cytosine (C)</div>
+                    <div class="legend-item"><span class="color-dot" style="background:var(--color-backbone);"></span> Khung Đường-P</div>
+                    <div class="legend-item"><span class="color-dot" style="background:var(--color-hbond);"></span> Liên kết Hydro</div>
+                </div>
+                <div class="cute-box">
+                    💡 <b>Liên kết bổ sung:</b><br>
+                    • <b>A = T</b> (2 liên kết Hydro)<br>
+                    • <b>G ≡ C</b> (3 liên kết Hydro)
+                </div>
+            </div>
+
+            <!-- Module 2 -->
+            <div id="sect-mod2" class="panel-section">
+                <h2>2. Không Gian DNA & Liên Kết H Mờ 🌸</h2>
+                <p>Chuỗi xoắn đôi gồm 2 mạch song song xoắn đều. Các vạch mờ trắng ở giữa đại diện cho các <b>Liên kết Hydro</b> giữ ổn định không gian!</p>
+                <div class="cute-box">
+                    📏 <b>Thông số chuẩn:</b><br>
+                    • Đường kính vòng xoắn: <b>20 Å</b> (2 nm)<br>
+                    • 1 chu kỳ xoắn = 10 cặp Nu = <b>34 Å</b> (3.4 nm)
+                </div>
+            </div>
+
+            <!-- Module 3 -->
+            <div id="sect-mod3" class="panel-section">
+                <h2>3. Quá Trình Tái Bản DNA (3 Giai Đoạn) ⚡</h2>
+                <div id="repl-step-text" class="cute-box">
+                    Chọn bước bên dưới để khám phá chi tiết 3 giai đoạn nhân đôi ADN!
+                </div>
+            </div>
+
+            <!-- Module 4 -->
+            <div id="sect-mod4" class="panel-section">
+                <h2>4. Quá Trình Phiên Mã RNA (3 Giai Đoạn) 📜</h2>
+                <div id="trans-step-text" class="cute-box">
+                    Chọn bước bên dưới để xem diễn biến tạo chuỗi mARN từ DNA gốc!
+                </div>
+            </div>
+
+            <!-- Module 5 -->
+            <div id="sect-mod5" class="panel-section">
+                <h2>5. Thử Thách Tái Bản & Phiên Mã 🎮</h2>
+                <p>Thực hành kiểm tra kiến thức nguyên tắc bổ sung và các enzyme tham gia vào tái bản và phiên mã trực tiếp trên mô hình 3D!</p>
+                <div class="cute-box" style="border-left-color: var(--accent-yellow);">
+                    🎯 Quan sát vị trí tương tác nhấp nháy trên mô hình và chọn câu trả lời đúng!
+                </div>
+            </div>
+        </div>
+
+        <div id="interactive-popup">
+            <h3 id="popup-title">Tên chi tiết</h3>
+            <p id="popup-body">Mô tả chi tiết cấu trúc.</p>
+        </div>
+
+        <!-- Khung Bài Tập Tương Tác -->
+        <div id="quiz-container">
+            <h3 id="quiz-question">Câu hỏi sẽ hiển thị ở đây?</h3>
+            <div class="quiz-options" id="quiz-options-box"></div>
+        </div>
+
+        <div id="action-controls"></div>
+
+        <nav id="main-menu" class="ui-card">
+            <button class="nav-btn active" onclick="switchModule(1)">1. Hóa Học DNA</button>
+            <button class="nav-btn" onclick="switchModule(2)">2. Không Gian DNA</button>
+            <button class="nav-btn" onclick="switchModule(3)">3. Tái Bản DNA</button>
+            <button class="nav-btn" onclick="switchModule(4)">4. Phiên Mã RNA</button>
+            <button class="nav-btn" onclick="switchModule(5)">5. Bài Tập 3D</button>
+        </nav>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls;
+        let currentModule = 1;
+        let mainGroup;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+
+        let activeQuizMesh = null;
+        let currentQuizIndex = 0;
+        let subStep = 1;
+
+        // Bảng màu Kawaii Pastel
+        const COLORS = {
+            A: 0xff7675,
+            T: 0x55efc4,
+            G: 0x74b9ff,
+            C: 0xffeaa7,
+            U: 0xa29bfe,
+            backbone: 0xff85a2,
+            hydrogen: 0xffffff,
+            helicase: 0xfdcb6e,
+            dnaPoly: 0xe84393,
+            rnaPoly: 0x6c5ce7
+        };
+
+        const QUIZ_DATA = [
+            { q: "[Tái Bản] Enzyme Helicase làm đứt liên kết nào để tháo xoắn tách 2 mạch ADN?", target: 'H', correct: 'Hydro', opts: ['Hydro', 'Photphodieste', 'Peptide'] },
+            { q: "[Tái Bản] Mạch gốc ADN có Nu là [A]. DNA Polymerase sẽ tổng hợp Nu bổ sung nào?", target: 'A', correct: 'T', opts: ['A', 'T', 'G', 'C'] },
+            { q: "[Phiên Mã] Mạch gốc ADN có Nu là [A]. RNA Polymerase sẽ tổng hợp Nu bổ sung nào trên mARN?", target: 'A', correct: 'U', opts: ['A', 'T', 'U', 'C'] },
+            { q: "[Phiên Mã] Mạch gốc ADN có Nu là [G]. Nu tương ứng trên mạch mARN là gì?", target: 'G', correct: 'C', opts: ['A', 'U', 'G', 'C'] }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initEngine();
+            buildModule(1);
+            animate();
+
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+        });
+
+        function initEngine() {
+            const container = document.getElementById('webgl-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f1123);
+
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.set(0, 0, 9);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
+            scene.add(ambLight);
+
+            const dirLight = new THREE.DirectionalLight(0xff85a2, 0.7);
+            dirLight.position.set(5, 10, 7);
+            scene.add(dirLight);
+
+            const dirLight2 = new THREE.DirectionalLight(0x74b9ff, 0.5);
+            dirLight2.position.set(-5, -5, -5);
+            scene.add(dirLight2);
+
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+
+            window.addEventListener('pointerdown', onPointerDown);
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function switchModule(mod) {
+            if (currentModule === mod && mod !== 5) return;
+            currentModule = mod;
+
+            document.querySelectorAll('.nav-btn').forEach((b, idx) => {
+                b.classList.toggle('active', idx + 1 === mod);
+            });
+
+            document.querySelectorAll('.panel-section').forEach((s, idx) => {
+                s.classList.toggle('active', idx + 1 === mod);
+            });
+
+            document.getElementById('action-controls').innerHTML = '';
+            document.getElementById('interactive-popup').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'none';
+
+            subStep = 1;
+            while (mainGroup.children.length > 0) mainGroup.remove(mainGroup.children[0]);
+
+            buildModule(mod);
+        }
+
+        function buildModule(mod) {
+            controls.reset();
+            camera.position.set(0, 0, 9);
+
+            if (mod === 1) createChemicalDNAModel();
+            else if (mod === 2) createSpatialDNAModel();
+            else if (mod === 3) setupReplicationControls();
+            else if (mod === 4) setupTranscriptionControls();
+            else if (mod === 5) setupQuizModule();
+        }
+
+        // 1. Cấu Trúc Hóa Học DNA
+        function createChemicalDNAModel() {
+            const group = new THREE.Group();
+            const pairs = [
+                { b1: 'A', b2: 'T', y: 1.3 },
+                { b1: 'G', b2: 'C', y: 0.0 },
+                { b1: 'T', b2: 'A', y: -1.3 }
+            ];
+
+            pairs.forEach(p => {
+                const pairGroup = new THREE.Group();
+                pairGroup.position.y = p.y;
+
+                const mesh1 = createCuteCapsule(COLORS[p.b1], -0.85, 0, 0, 0.18, 1.1);
+                mesh1.userData = { title: `Nucleotide Loại ${p.b1}`, desc: `Đơn phân cấu tạo nên DNA chứa bazơ nitơ ${p.b1}.` };
+                pairGroup.add(mesh1);
+
+                const mesh2 = createCuteCapsule(COLORS[p.b2], 0.85, 0, 0, 0.18, 1.1);
+                mesh2.userData = { title: `Nucleotide Loại ${p.b2}`, desc: `Đơn phân cấu tạo nên DNA chứa bazơ nitơ ${p.b2}.` };
+                pairGroup.add(mesh2);
+
+                const bbL = createCuteSphere(COLORS.backbone, -1.65, 0, 0, 0.28);
+                bbL.userData = { title: "Khung Đường - Photphat", desc: "Nối liền các Nucleotide trên 1 mạch bằng liên kết hóa trị Photphodieste." };
+                const bbR = createCuteSphere(COLORS.backbone, 1.65, 0, 0, 0.28);
+                bbR.userData = bbL.userData;
+                pairGroup.add(bbL, bbR);
+
+                const count = (p.b1 === 'A' || p.b1 === 'T') ? 2 : 3;
+                for (let i = 0; i < count; i++) {
+                    const hY = (i - (count - 1) / 2) * 0.14;
+                    const hMesh = createCuteCapsule(COLORS.hydrogen, 0, hY, 0, 0.04, 0.35);
+                    hMesh.userData = { title: `Liên kết Hydro (${count} liên kết)`, desc: `Liên kết Hydro giữa cặp bazơ bổ sung (${p.b1}-${p.b2}).` };
+                    pairGroup.add(hMesh);
+                }
+
+                group.add(pairGroup);
+            });
+
+            mainGroup.add(group);
+        }
+
+        // 2. Không Gian DNA Với Liên Kết H Mờ Mờ
+        function createSpatialDNAModel() {
+            const group = new THREE.Group();
+            const numPairs = 24;
+            const height = 9;
+
+            const baseTypes = [
+                { b1: 'A', b2: 'T', count: 2 },
+                { b1: 'G', b2: 'C', count: 3 },
+                { b1: 'T', b2: 'A', count: 2 },
+                { b1: 'C', b2: 'G', count: 3 }
+            ];
+
+            for (let i = 0; i < numPairs; i++) {
+                const progress = i / numPairs;
+                const angle = progress * Math.PI * 4;
+                const y = (progress - 0.5) * height;
+
+                const pairData = baseTypes[i % 4];
+
+                const pairGroup = new THREE.Group();
+                pairGroup.position.set(0, y, 0);
+                pairGroup.rotation.y = angle;
+
+                const b1 = createCuteCapsule(COLORS[pairData.b1], -0.65, 0, 0, 0.1, 0.95);
+                b1.userData = { title: `Cặp Cấu Trúc (${pairData.b1}-${pairData.b2})`, desc: "Các cặp bazơ nitơ xoắn đều đặn quanh trục tạo không gian chuỗi xoắn đôi." };
+                
+                const b2 = createCuteCapsule(COLORS[pairData.b2], 0.65, 0, 0, 0.1, 0.95);
+                b2.userData = b1.userData;
+
+                const bb1 = createCuteSphere(COLORS.backbone, -1.25, 0, 0, 0.18);
+                bb1.userData = { title: "Chu Kỳ Xoắn Đôi", desc: "Mỗi chu kỳ xoắn dài 34 Å gồm đúng 10 cặp Nu. Đường kính xoắn là 20 Å." };
+                const bb2 = createCuteSphere(COLORS.backbone, 1.25, 0, 0, 0.18);
+                bb2.userData = bb1.userData;
+
+                // Liên kết Hydro mờ mờ
+                const hGroup = new THREE.Group();
+                for (let j = 0; j < pairData.count; j++) {
+                    const hY = (j - (pairData.count - 1) / 2) * 0.08;
+                    const hGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.35, 8);
+                    const hMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 });
+                    const hMesh = new THREE.Mesh(hGeo, hMat);
+                    hMesh.rotation.z = Math.PI / 2;
+                    hMesh.position.set(0, hY, 0);
+                    hMesh.userData = { title: `Liên kết Hydro mờ (${pairData.count} liên kết)`, desc: "Liên kết Hydro mờ dẻo dai giúp duy trì cấu trúc xoắn đôi bền vững." };
+                    hGroup.add(hMesh);
+                }
+
+                pairGroup.add(b1, b2, bb1, bb2, hGroup);
+                group.add(pairGroup);
+            }
+
+            mainGroup.add(group);
+        }
+
+        // 3. Quá Trình Tái Bản DNA (3 Giai Đoạn)
+        function setupReplicationControls() {
+            const container = document.getElementById('action-controls');
+            container.innerHTML = '';
+            
+            const steps = [
+                { step: 1, text: 'Giai Đoạn 1: Tháo Xoắn' },
+                { step: 2, text: 'Giai Đoạn 2: Tổng Hợp Mạch Mới' },
+                { step: 3, text: 'Giai Đoạn 3: Tạo 2 DNA Con' }
+            ];
+
+            steps.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = `step-btn ${s.step === 1 ? 'active' : ''}`;
+                btn.innerText = s.text;
+                btn.onclick = (e) => {
+                    document.querySelectorAll('#action-controls .step-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    subStep = s.step;
+                    renderReplicationStep(s.step);
+                };
+                container.appendChild(btn);
+            });
+
+            renderReplicationStep(1);
+        }
+
+        function renderReplicationStep(step) {
+            while (mainGroup.children.length > 0) mainGroup.remove(mainGroup.children[0]);
+            const group = new THREE.Group();
+            const textContainer = document.getElementById('repl-step-text');
+
+            const numPairs = 16;
+
+            if (step === 1) {
+                textContainer.innerHTML = "<b>Giai Đoạn 1 - Tháo Xoắn DNA:</b> Enzyme <i>Helicase</i> bám vào phân tử DNA, cắt đứt các liên kết Hydro giữa 2 mạch để tách chạc tái bản chữ Y.";
+                
+                for (let i = 0; i < numPairs; i++) {
+                    const y = (i - numPairs / 2) * 0.42;
+                    let sep = (i > 6) ? (i - 6) * 0.22 : 0;
+
+                    const b1 = createCuteCapsule(COLORS.A, -0.65 - sep, y, 0, 0.1, 0.9);
+                    const b2 = createCuteCapsule(COLORS.T, 0.65 + sep, y, 0, 0.1, 0.9);
+                    group.add(b1, b2);
+
+                    if (i <= 6) {
+                        const h = createCuteCapsule(COLORS.hydrogen, 0, y, 0, 0.03, 0.35);
+                        h.material.transparent = true; h.material.opacity = 0.4;
+                        group.add(h);
+                    }
+                }
+
+                // Enzyme Helicase màu vàng
+                const helicase = createCuteSphere(COLORS.helicase, 0, (7 - numPairs / 2) * 0.42, 0, 0.65);
+                helicase.userData = { title: "Enzyme Helicase", desc: "Trượt tháo xoắn và bẻ gãy các liên kết Hydro tạo chạc tái bản chữ Y." };
+                group.add(helicase);
+
+            } else if (step === 2) {
+                textContainer.innerHTML = "<b>Giai Đoạn 2 - Tổng Hợp Mạch Mới:</b> Enzyme <i>DNA Polymerase</i> trượt trên mạch khuôn để tổng hợp mạch mới theo nguyên tắc bổ sung (A-T, G-C).";
+
+                for (let i = 0; i < numPairs; i++) {
+                    const y = (i - numPairs / 2) * 0.42;
+                    let sep = (i > 4) ? (i - 4) * 0.25 : 0;
+
+                    // Mạch mẹ
+                    const b1 = createCuteCapsule(COLORS.A, -0.65 - sep, y, 0, 0.1, 0.9);
+                    const b2 = createCuteCapsule(COLORS.T, 0.65 + sep, y, 0, 0.1, 0.9);
+                    group.add(b1, b2);
+
+                    // Mạch mới đang tổng hợp bổ sung
+                    if (i > 4 && i < 12) {
+                        const newB1 = createCuteCapsule(COLORS.T, -0.15 - sep, y, 0, 0.09, 0.7);
+                        newB1.userData = { title: "Mạch Mới Tổng Hợp", desc: "DNA Polymerase liên kết các Nu tự do bổ sung vào mạch khuôn." };
+                        group.add(newB1);
+                    }
+                }
+
+                // Enzyme DNA Polymerase màu hồng đậm
+                const dnaPoly = createCuteSphere(COLORS.dnaPoly, -1.2, (10 - numPairs / 2) * 0.42, 0, 0.55);
+                dnaPoly.userData = { title: "Enzyme DNA Polymerase", desc: "Tổng hợp chuỗi Nucleotide mới theo chiều 5' -> 3'." };
+                group.add(dnaPoly);
+
+            } else if (step === 3) {
+                textContainer.innerHTML = "<b>Giai Đoạn 3 - Tạo 2 DNA Con:</b> Mạch mới xoắn lại với mạch cũ. Tạo ra 2 phân tử DNA hoàn toàn giống nhau và giống DNA mẹ (Nguyên tắc Bán bảo tồn).";
+
+                // Hiển thị 2 chuỗi xoắn đôi song song
+                for (let d = -1.5; d <= 1.5; d += 3.0) {
+                    for (let i = 0; i < 12; i++) {
+                        const y = (i - 6) * 0.4;
+                        const b1 = createCuteCapsule(COLORS.A, d - 0.4, y, 0, 0.09, 0.7);
+                        const b2 = createCuteCapsule(COLORS.T, d + 0.4, y, 0, 0.09, 0.7);
+                        const h = createCuteCapsule(COLORS.hydrogen, d, y, 0, 0.02, 0.3);
+                        h.material.transparent = true; h.material.opacity = 0.4;
+                        group.add(b1, b2, h);
+                    }
+                }
+            }
+
+            mainGroup.add(group);
+        }
+
+        // 4. Quá Trình Phiên Mã RNA (3 Giai Đoạn)
+        function setupTranscriptionControls() {
+            const container = document.getElementById('action-controls');
+            container.innerHTML = '';
+
+            const steps = [
+                { step: 1, text: 'Giai Đoạn 1: Mở Đầu' },
+                { step: 2, text: 'Giai Đoạn 2: Kéo Dài' },
+                { step: 3, text: 'Giai Đoạn 3: Kết Thúc' }
+            ];
+
+            steps.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = `step-btn ${s.step === 1 ? 'active' : ''}`;
+                btn.innerText = s.text;
+                btn.onclick = (e) => {
+                    document.querySelectorAll('#action-controls .step-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    subStep = s.step;
+                    renderTranscriptionStep(s.step);
+                };
+                container.appendChild(btn);
+            });
+
+            renderTranscriptionStep(1);
+        }
+
+        function renderTranscriptionStep(step) {
+            while (mainGroup.children.length > 0) mainGroup.remove(mainGroup.children[0]);
+            const group = new THREE.Group();
+            const textContainer = document.getElementById('trans-step-text');
+
+            const numPairs = 16;
+
+            if (step === 1) {
+                textContainer.innerHTML = "<b>Giai Đoạn 1 - Khởi Đầu Phiên Mã:</b> Enzyme <i>RNA Polymerase</i> bám vào vùng khởi động (Promoter) trên DNA, tách 2 mạch DNA làm lộ mạch gốc 3' -> 5'.";
+
+                for (let i = 0; i < numPairs; i++) {
+                    const y = (i - numPairs / 2) * 0.42;
+                    let open = (i >= 6 && i <= 10) ? 0.7 : 0;
+
+                    const b1 = createCuteCapsule(COLORS.A, -0.65 - open, y, 0, 0.1, 0.9);
+                    const b2 = createCuteCapsule(COLORS.T, 0.65 + open, y, 0, 0.1, 0.9);
+                    group.add(b1, b2);
+                }
+
+                const rnaPoly = createCuteSphere(COLORS.rnaPoly, 0, (8 - numPairs / 2) * 0.42, 0, 0.75);
+                rnaPoly.userData = { title: "RNA Polymerase", desc: "Bám vào vùng khởi động, tháo xoắn DNA lộ ra mạch gốc." };
+                group.add(rnaPoly);
+
+            } else if (step === 2) {
+                textContainer.innerHTML = "<b>Giai Đoạn 2 - Kéo Dài Chuỗi mARN:</b> RNA Polymerase trượt dọc mạch gốc DNA, liên kết các Nu tự do theo nguyên tắc bổ sung: <b>A-U, T-A, G-C, C-G</b>.";
+
+                for (let i = 0; i < numPairs; i++) {
+                    const y = (i - numPairs / 2) * 0.42;
+                    let open = (i >= 4 && i <= 12) ? 0.8 : 0;
+
+                    const b1 = createCuteCapsule(COLORS.A, -0.65 - open, y, 0, 0.1, 0.9);
+                    const b2 = createCuteCapsule(COLORS.T, 0.65 + open, y, 0, 0.1, 0.9);
+                    group.add(b1, b2);
+
+                    // Chuỗi mARN màu tím
+                    if (i >= 4 && i <= 10) {
+                        const rnaNu = createCuteCapsule(COLORS.U, -0.1 - open, y, 0.3, 0.1, 0.8);
+                        rnaNu.userData = { title: "mARN Đang Kéo Dài (Có Uracil - U)", desc: "A trên mạch gốc liên kết với U tự do môi trường." };
+                        group.add(rnaNu);
+                    }
+                }
+
+                const rnaPoly = createCuteSphere(COLORS.rnaPoly, -0.5, (10 - numPairs / 2) * 0.42, 0, 0.75);
+                group.add(rnaPoly);
+
+            } else if (step === 3) {
+                textContainer.innerHTML = "<b>Giai Đoạn 3 - Kết Thúc Phiên Mã:</b> Enzyme chạm tín hiệu kết thúc, giải phóng phân tử mARN hoàn chỉnh. DNA đóng xoắn trở lại.";
+
+                // Mạch DNA đóng xoắn lại
+                for (let i = 0; i < 12; i++) {
+                    const y = (i - 6) * 0.42;
+                    const b1 = createCuteCapsule(COLORS.A, -0.65, y, 0, 0.1, 0.9);
+                    const b2 = createCuteCapsule(COLORS.T, 0.65, y, 0, 0.1, 0.9);
+                    group.add(b1, b2);
+                }
+
+                // Chuỗi mARN tách rời tự do
+                for (let i = 0; i < 8; i++) {
+                    const y = (i - 4) * 0.4;
+                    const rnaNu = createCuteCapsule(COLORS.U, 2.0, y, 0, 0.1, 0.8);
+                    rnaNu.userData = { title: "Chuỗi mARN Hoàn Chỉnh", desc: "Mạch đơn mARN được giải phóng chuẩn bị đi ra tế bào chất thực hiện dịch mã." };
+                    group.add(rnaNu);
+                }
+            }
+
+            mainGroup.add(group);
+        }
+
+        // 5. Bài Tập Tương Tác 3D Tái Bản & Phiên Mã
+        function setupQuizModule() {
+            document.getElementById('quiz-container').style.display = 'block';
+            currentQuizIndex = 0;
+            renderQuizStep();
+        }
+
+        function renderQuizStep() {
+            while (mainGroup.children.length > 0) mainGroup.remove(mainGroup.children[0]);
+
+            const quiz = QUIZ_DATA[currentQuizIndex];
+            document.getElementById('quiz-question').innerText = `Câu ${currentQuizIndex + 1}: ${quiz.q}`;
+
+            const optBox = document.getElementById('quiz-options-box');
+            optBox.innerHTML = '';
+
+            quiz.opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-opt-btn';
+                if (COLORS[opt]) {
+                    btn.style.background = `#${COLORS[opt].toString(16)}`;
+                } else {
+                    btn.style.background = '#ffeaa7';
+                    btn.style.width = 'auto';
+                    btn.style.borderRadius = '15px';
+                    btn.style.padding = '0 12px';
+                }
+                btn.innerText = opt;
+                btn.onclick = () => checkQuizAnswer(opt);
+                optBox.appendChild(btn);
+            });
+
+            // Mô hình 3D tương tác bài tập
+            const group = new THREE.Group();
+            
+            if (quiz.target === 'H') {
+                // Câu hỏi liên kết hydro
+                const b1 = createCuteCapsule(COLORS.A, -0.75, 0, 0, 0.2, 1.1);
+                const b2 = createCuteCapsule(COLORS.T, 0.75, 0, 0, 0.2, 1.1);
+                
+                const placeGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.4, 16);
+                const placeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+                activeQuizMesh = new THREE.Mesh(placeGeo, placeMat);
+                activeQuizMesh.rotation.z = Math.PI / 2;
+                activeQuizMesh.position.set(0, 0, 0);
+
+                group.add(b1, b2, activeQuizMesh);
+            } else {
+                // Câu hỏi liên kết Nu
+                const baseMesh = createCuteCapsule(COLORS[quiz.target], -0.75, 0, 0, 0.2, 1.1);
+                baseMesh.userData = { title: `Nu Mạch Gốc: ${quiz.target}`, desc: "Chọn Nu bổ sung thích hợp trên mạch mới!" };
+                group.add(baseMesh);
+
+                const placeGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.1, 16);
+                const placeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+                activeQuizMesh = new THREE.Mesh(placeGeo, placeMat);
+                activeQuizMesh.rotation.z = Math.PI / 2;
+                activeQuizMesh.position.set(0.75, 0, 0);
+                group.add(activeQuizMesh);
+            }
+
+            mainGroup.add(group);
+        }
+
+        function checkQuizAnswer(ans) {
+            const quiz = QUIZ_DATA[currentQuizIndex];
+            if (ans === quiz.correct) {
+                alert("🎉 Tuyệt vời! Bạn trả lời ĐÚNG rồi nhé ✨");
+                currentQuizIndex = (currentQuizIndex + 1) % QUIZ_DATA.length;
+                renderQuizStep();
+            } else {
+                alert("❌ Tiếc quá, chưa đúng rồi! Bạn thử suy nghĩ lại xem nhé ✨");
+            }
+        }
+
+        function onPointerDown(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(mainGroup.children, true);
+
+            if (intersects.length > 0) {
+                const obj = intersects[0].object;
+                if (obj.userData && obj.userData.title) {
+                    const popup = document.getElementById('interactive-popup');
+                    document.getElementById('popup-title').innerText = obj.userData.title;
+                    document.getElementById('popup-body').innerText = obj.userData.desc;
+                    popup.style.display = 'block';
+                }
+            }
+        }
+
+        function createCuteCapsule(color, x, y, z, r, h) {
+            const geo = new THREE.CylinderGeometry(r, r, h, 16);
+            const mat = new THREE.MeshPhongMaterial({ color: color, shininess: 90 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.z = Math.PI / 2;
+            mesh.position.set(x, y, z);
+            return mesh;
+        }
+
+        function createCuteSphere(color, x, y, z, r) {
+            const geo = new THREE.SphereGeometry(r, 20, 20);
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.1 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, y, z);
+            return mesh;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            if (currentModule === 2) {
+                mainGroup.rotation.y += 0.006;
+            } else if (currentModule === 5 && activeQuizMesh) {
+                activeQuizMesh.rotation.y += 0.04;
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
